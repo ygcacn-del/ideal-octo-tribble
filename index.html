@@ -1,301 +1,183 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>天界廟會 Celestial Fair</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    body { font-family: system-ui, sans-serif; }
-    .page { background-size: cover !important; background-position: center !important; min-height: 100vh; }
-    .glass { background: rgba(255,255,255,0.78); backdrop-filter: blur(20px); }
-    .gold-glow { text-shadow: 0 0 30px #fcd400; }
-    .scan-line {
-      position: absolute; left: 0; right: 0; height: 8px;
-      background: linear-gradient(transparent, #ffeb3b, #f44336, transparent);
-      box-shadow: 0 0 50px #ffeb3b;
-      animation: scan 2.5s linear infinite;
-      z-index: 30;
-    }
-    @keyframes scan { 0% { top: -30%; } 100% { top: 130%; } }
-    .qr-code { max-height: 280px; width: auto; border: 6px solid #fff; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>东方命理神谕 | Oriental Destiny Oracle</title>
+
+<style>
+body{margin:0;background:#0b0f1a;color:#fff;font-family:Arial}
+.header{text-align:center;padding:20px;background:#111;font-size:22px}
+.cards{display:flex;flex-wrap:wrap;gap:20px;padding:20px}
+.card{flex:1;min-width:220px;background:#161c2e;padding:20px;border-radius:10px}
+.btn{margin-top:10px;padding:10px;text-align:center;border-radius:6px;cursor:pointer}
+.wise{background:#3498db}
+.usdt{background:#2ecc71}
+.pay{background:#ff3b3b}
+
+.modal{
+position:fixed;top:0;left:0;width:100%;height:100%;
+background:rgba(0,0,0,0.85);
+display:none;justify-content:center;align-items:center
+}
+
+.box{background:#111;padding:20px;border-radius:10px;text-align:center;max-width:300px}
+
+.report{display:none;padding:20px;line-height:1.7}
+.download{background:#ffd700;color:#000;padding:10px;margin-top:20px;display:inline-block}
+</style>
+
 </head>
 <body>
 
-  <!-- 第1页：首页 -->
-  <div id="page1" class="page" style="background-image: url('https://i.imgur.com/S95TGmX.jpeg');">
-    <div class="min-h-screen bg-black/40 flex flex-col items-center justify-center text-center p-6">
-      <img src="https://i.imgur.com/0yuQObX.png" class="w-80 md:w-[420px] mb-8 drop-shadow-2xl">
-      <h1 class="text-6xl md:text-7xl font-bold text-white gold-glow mb-3">天界廟會 / Celestial Temple Fair</h1>
-      <p class="text-3xl text-white/90">Celestial Fair • Imperial Mystic</p>
+<div class="header">东方命理神谕 | Oriental Destiny Oracle</div>
 
-      <div class="mt-8 flex items-center gap-3 bg-white/90 px-8 py-4 rounded-3xl text-xl font-medium">
-        <div class="w-4 h-4 bg-green-500 rounded-full animate-pulse"></div>
-        当前在线 <span id="online" class="font-bold text-red-600">4,082</span> 人正在占卜 / Currently 4,082 people are divining
-      </div>
+<div class="cards">
 
-      <div class="mt-10 max-w-md glass p-6 rounded-2xl text-sm text-center">
-        <strong>免责声明 / Disclaimer</strong><br>
-        本应用纯属娱乐性质，仅供参考。信则有，不信则无。<br>
-        This app is for entertainment purposes only. Believe it or not.
-      </div>
+<div class="card">
+<h3>流年运势<br>1-Year Fortune</h3>
+<p>$9.9</p>
+<div class="btn wise" onclick="payWise('9.9','year')">Wise</div>
+<div class="btn usdt" onclick="payOther('usdt','year')">USDT</div>
+<div class="btn pay" onclick="payOther('alipay','year')">支付宝</div>
+<div class="btn pay" onclick="payOther('wechat','year')">微信</div>
+</div>
 
-      <button onclick="goToPage(2)" class="mt-12 px-20 py-8 text-3xl font-bold bg-white/80 hover:bg-white text-red-700 rounded-3xl shadow-xl">
-        进入神殿 / Enter the Temple
-      </button>
-    </div>
-  </div>
+<div class="card">
+<h3>十年大运<br>10-Year Cycle</h3>
+<p>$39.9</p>
+<div class="btn wise" onclick="payWise('39.9','ten')">Wise</div>
+<div class="btn usdt" onclick="payOther('usdt','ten')">USDT</div>
+<div class="btn pay" onclick="payOther('alipay','ten')">支付宝</div>
+<div class="btn pay" onclick="payOther('wechat','ten')">微信</div>
+</div>
 
-  <!-- 第2页：扫描页 -->
-  <div id="page2" class="page hidden" style="background-image: url('https://i.imgur.com/HFUPlbG.jpeg');">
-    <div class="min-h-screen bg-black/50 flex items-center justify-center p-6">
-      <div class="glass rounded-3xl p-12 max-w-4xl w-full text-center">
-        <h2 class="text-5xl font-bold mb-8">AI 面相 · 手相扫描 / Face & Palm Scan</h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
-          <div onclick="startFaceScan()" class="cursor-pointer">
-            <div class="relative bg-black h-80 rounded-3xl overflow-hidden mx-auto" style="max-width: 320px;">
-              <div id="face-video" class="w-full h-full flex items-center justify-center text-white text-8xl">📸</div>
-              <div id="face-scan-line" class="scan-line hidden"></div>
-              <div id="face-photo" class="hidden absolute inset-0 bg-cover bg-center" style="background-image: url('https://i.imgur.com/0yuQObX.png');"></div>
-            </div>
-            <p class="mt-6 text-2xl font-bold">脸部扫描 / Face Scan</p>
-          </div>
-          <div onclick="startPalmScan()" class="cursor-pointer">
-            <div class="relative bg-black h-80 rounded-3xl overflow-hidden mx-auto" style="max-width: 320px;">
-              <div id="palm-video" class="w-full h-full flex items-center justify-center text-white text-8xl">✋</div>
-              <div id="palm-scan-line" class="scan-line hidden"></div>
-              <div id="palm-photo" class="hidden absolute inset-0 bg-cover bg-center" style="background-image: url('https://i.imgur.com/0yuQObX.png');"></div>
-            </div>
-            <p class="mt-6 text-2xl font-bold">手掌扫描 / Palm Scan</p>
-          </div>
-        </div>
-        <button onclick="goToPage(3)" class="mt-12 w-full py-8 text-2xl font-bold bg-white/80 hover:bg-white text-red-700 rounded-3xl">
-          完成扫描并继续 / Next Step
-        </button>
-      </div>
-    </div>
-  </div>
+<div class="card">
+<h3>一生命书<br>Lifetime Destiny</h3>
+<p>$99.9</p>
+<div class="btn wise" onclick="payWise('99.9','life')">Wise</div>
+<div class="btn usdt" onclick="payOther('usdt','life')">USDT</div>
+<div class="btn pay" onclick="payOther('alipay','life')">支付宝</div>
+<div class="btn pay" onclick="payOther('wechat','life')">微信</div>
+</div>
 
-  <!-- 第3页：信息采集 -->
-  <div id="page3" class="page hidden" style="background-image: url('https://i.imgur.com/0yuQObX.png');">
-    <div class="min-h-screen bg-black/50 flex items-center justify-center p-6">
-      <div class="glass rounded-3xl p-12 max-w-2xl w-full">
-        <h2 class="text-4xl font-bold text-center mb-10">请填写您的信息 / Personal Information</h2>
-        <div class="space-y-6">
-          <input type="date" id="birth" class="glass p-5 rounded-3xl text-lg w-full">
-          <div class="grid grid-cols-3 gap-4">
-            <select id="zodiac" class="glass p-5 rounded-3xl text-lg">
-              <option>属相 / Chinese Zodiac</option>
-              <option>鼠 / Rat</option><option>牛 / Ox</option><option>虎 / Tiger</option><option>兔 / Rabbit</option>
-              <option>龙 / Dragon</option><option>蛇 / Snake</option><option>马 / Horse</option><option>羊 / Goat</option>
-              <option>猴 / Monkey</option><option>鸡 / Rooster</option><option>狗 / Dog</option><option>猪 / Pig</option>
-            </select>
-            <select id="blood" class="glass p-5 rounded-3xl text-lg">
-              <option>血型 / Blood Type</option>
-              <option>A</option><option>B</option><option>AB</option><option>O</option>
-            </select>
-            <select id="constellation" class="glass p-5 rounded-3xl text-lg">
-              <option>星座 / Western Zodiac</option>
-              <option>白羊 / Aries</option><option>金牛 / Taurus</option><option>双子 / Gemini</option>
-              <option>巨蟹 / Cancer</option><option>狮子 / Leo</option><option>处女 / Virgo</option>
-              <option>天秤 / Libra</option><option>天蝎 / Scorpio</option><option>射手 / Sagittarius</option>
-              <option>摩羯 / Capricorn</option><option>水瓶 / Aquarius</option><option>双鱼 / Pisces</option>
-            </select>
-          </div>
-        </div>
-        <button onclick="goToPage(4)" class="mt-12 w-full py-8 text-2xl font-bold bg-white/80 hover:bg-white text-red-700 rounded-3xl">
-          继续到报告选择 / Choose Report
-        </button>
-      </div>
-    </div>
-  </div>
+<div class="card">
+<h3>大师亲批<br>Master Reading</h3>
+<p>$199.9</p>
+<div class="btn wise" onclick="payWise('199.9','master')">Wise</div>
+<div class="btn usdt" onclick="payOther('usdt','master')">USDT</div>
+<div class="btn pay" onclick="payOther('alipay','master')">支付宝</div>
+<div class="btn pay" onclick="payOther('wechat','master')">微信</div>
+</div>
 
-  <!-- 第4页：报告选择页 -->
-  <div id="page4" class="page hidden" style="background-image: url('https://i.imgur.com/7irZjPt.png');">
-    <div class="min-h-screen bg-black/40 flex items-center justify-center p-6">
-      <div class="max-w-4xl w-full glass rounded-3xl p-12">
-        <h2 class="text-5xl font-bold text-center mb-12">选择您的运势报告 / Choose Your Report</h2>
-        
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div onclick="viewFreeReport()" class="glass p-10 rounded-3xl text-center cursor-pointer hover:scale-105">
-            <h3 class="text-3xl font-bold">免费报告 / Free Preview</h3>
-            <p class="text-sm mt-4">试用后可升级完整版</p>
-          </div>
-          <div onclick="selectReport('10days')" class="glass p-10 rounded-3xl text-center cursor-pointer hover:scale-105">
-            <h3 class="text-3xl font-bold">10天运势 / 10-Day Report</h3>
-            <p class="text-yellow-400 font-bold">¥49 / $7</p>
-          </div>
-          <div onclick="selectReport('1year')" class="glass p-10 rounded-3xl border-4 border-yellow-400 bg-yellow-50/30 text-center cursor-pointer hover:scale-105 relative">
-            <div class="absolute -top-4 right-6 bg-yellow-400 text-black px-6 py-1 rounded-full text-sm font-bold">最推荐</div>
-            <h3 class="text-4xl font-bold">1年完整运势 / 1-Year Report</h3>
-            <p class="text-yellow-400 font-bold text-3xl">¥199 / $29</p>
-          </div>
-          <div onclick="selectReport('lifetime')" class="glass p-10 rounded-3xl text-center cursor-pointer hover:scale-105">
-            <h3 class="text-3xl font-bold">10年/一生运势 / Lifetime Report</h3>
-            <p class="text-purple-400 font-bold">¥499 / $69</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
+</div>
 
-  <!-- 第5页：统一付款页（加大二维码 + 双语提示 + 大按钮确认） -->
-  <div id="page5" class="page hidden" style="background-image: url('https://i.imgur.com/7irZjPt.png');">
-    <div class="min-h-screen bg-black/40 flex items-center justify-center p-6">
-      <div class="max-w-5xl w-full glass rounded-3xl p-12 text-center">
-        <h2 class="text-4xl font-bold mb-4">请选择支付方式 / Choose Payment Method</h2>
-        <p id="plan-name" class="text-2xl font-bold text-yellow-600 mb-10"></p>
+<!-- 弹窗 -->
+<div class="modal" id="modal">
+<div class="box" id="modalBox"></div>
+</div>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <!-- Wise -->
-          <div onclick="payWithWise()" class="glass p-10 rounded-3xl cursor-pointer hover:scale-105 transition">
-            <div class="text-6xl mb-6">💰</div>
-            <h3 class="text-2xl font-bold">Wise (USD)</h3>
-            <p class="text-sm mt-4">Recommended for international users</p>
-          </div>
+<!-- 报告 -->
+<div class="report" id="report"></div>
 
-          <!-- 支付宝 -->
-          <div class="glass p-8 rounded-3xl text-center">
-            <p class="font-bold mb-3">支付宝 / Alipay (RMB)</p>
-            <p class="text-xs text-gray-600 mb-4">请按所选报告手动输入相应金额<br>Please manually enter the corresponding amount according to the selected report</p>
-            <img src="https://i.imgur.com/SK78oon.jpeg" class="qr-code mx-auto" alt="Alipay QR">
-          </div>
+<script>
 
-          <!-- 微信 -->
-          <div class="glass p-8 rounded-3xl text-center">
-            <p class="font-bold mb-3">微信支付 / WeChat Pay (RMB)</p>
-            <p class="text-xs text-gray-600 mb-4">请按所选报告手动输入相应金额<br>Please manually enter the corresponding amount according to the selected report</p>
-            <img src="https://i.imgur.com/P8MTHua.jpeg" class="qr-code mx-auto" alt="WeChat QR">
-          </div>
-        </div>
+const wiseLinks={
+"9.9":"https://wise.com/pay/r/Q3B2n3O3HkI_WCI",
+"39.9":"https://wise.com/pay/r/A4J8xAQR9_MGaPo",
+"99.9":"https://wise.com/pay/r/4_XWh_vXhQGeOy4",
+"199.9":"https://wise.com/pay/r/XUil86D4xjzK2ks"
+}
 
-        <button onclick="goToPage(4)" class="mt-12 text-red-700 underline">返回重新选择报告 / Back to Report Selection</button>
-      </div>
-    </div>
-  </div>
+const usdt="TE84dFrCx2qmsvA5tsr8kBJBJb5YntrFqX"
+const alipay="https://i.imgur.com/Fq46vjy.jpeg"
+const wechat="https://i.imgur.com/FyaW9kG.jpeg"
 
-  <!-- 第6页：报告页（双语 + 吸引复购） -->
-  <div id="page6" class="page hidden" style="background-image: url('https://i.imgur.com/Hdo4LUR.jpeg');">
-    <div class="min-h-screen bg-black/50 flex items-center justify-center p-6">
-      <div class="glass rounded-3xl p-12 max-w-4xl">
-        <h2 class="text-5xl font-bold text-center mb-10">您的专属命运报告 / Your Personal Destiny Report</h2>
-        
-        <div id="report-content" class="text-left leading-relaxed text-lg mb-12 bg-white/80 p-8 rounded-2xl"></div>
+let currentType=""
 
-        <button onclick="downloadReport()" class="mt-8 w-full py-6 bg-white/80 hover:bg-white text-yellow-700 font-bold text-xl rounded-3xl">
-          下载完整报告 / Download Report (.txt)
-        </button>
+function payWise(price,type){
+currentType=type
+localStorage.setItem("unlock",type)
+window.open(wiseLinks[price],"_blank")
+alert("完成支付后返回点击“解锁报告”\nAfter payment, return and unlock")
+showUnlock()
+}
 
-        <div class="mt-12 text-center text-amber-600 font-medium text-lg">
-          谢谢您的信任！欢迎10天后再来复测，那时运势会有新变化。<br>
-          Thank you for your trust! Welcome back in 10 days — your fortune may have exciting new turns.<br><br>
-          一年后很可能转运成功，抓住每一个好运！<br>
-          In one year, major positive changes are likely — seize every good opportunity!
-        </div>
+function payOther(method,type){
+currentType=type
+localStorage.setItem("unlock",type)
 
-        <button onclick="backToHome()" class="mt-10 w-full py-6 bg-white/80 hover:bg-white text-red-700 font-bold text-2xl rounded-3xl">
-          返回首页 / Back to Home
-        </button>
-      </div>
-    </div>
-  </div>
+let html=""
 
-  <script>
-    let onlineCount = 4082;
-    let selectedPlan = '';
+if(method==="usdt"){
+html=`<p>USDT Address:<br>${usdt}</p>`
+}
+if(method==="alipay"){
+html=`<img src="${alipay}" width="200">`
+}
+if(method==="wechat"){
+html=`<img src="${wechat}" width="200">`
+}
 
-    setInterval(() => {
-      onlineCount += Math.floor(Math.random() * 8) + 3;
-      document.getElementById('online').textContent = onlineCount.toLocaleString();
-    }, 3000);
+html+=`<br><button onclick="unlock()">解锁报告 / Unlock</button>`
 
-    function goToPage(n) {
-      document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
-      document.getElementById('page' + n).classList.remove('hidden');
-    }
+document.getElementById("modalBox").innerHTML=html
+document.getElementById("modal").style.display="flex"
+}
 
-    function startFaceScan() {
-      const line = document.getElementById('face-scan-line');
-      const photo = document.getElementById('face-photo');
-      line.classList.remove('hidden');
-      setTimeout(() => {
-        line.classList.add('hidden');
-        photo.classList.remove('hidden');
-        alert('脸部扫描完成！ / Face scan completed!');
-      }, 2800);
-    }
+function showUnlock(){
+document.getElementById("modalBox").innerHTML=`
+<p>支付完成后点击解锁<br>Unlock after payment</p>
+<button onclick="unlock()">解锁报告</button>
+`
+document.getElementById("modal").style.display="flex"
+}
 
-    function startPalmScan() {
-      const line = document.getElementById('palm-scan-line');
-      const photo = document.getElementById('palm-photo');
-      line.classList.remove('hidden');
-      setTimeout(() => {
-        line.classList.add('hidden');
-        photo.classList.remove('hidden');
-        alert('手掌扫描完成！ / Palm scan completed!');
-      }, 2800);
-    }
+function unlock(){
+let t=localStorage.getItem("unlock")
+if(!t){alert("请先选择支付方式");return}
+document.getElementById("modal").style.display="none"
+showReport(t)
+}
 
-    function selectReport(plan) {
-      selectedPlan = plan;
-      let name = '';
-      if (plan === '10days') name = '10天运势报告 / 10-Day Report';
-      else if (plan === '1year') name = '1年完整运势报告 / 1-Year Report';
-      else if (plan === 'lifetime') name = '10年/一生运势报告 / Lifetime Report';
-      document.getElementById('plan-name').innerHTML = `已选择: <strong>${name}</strong>`;
-      goToPage(5);
-    }
+function showReport(type){
 
-    function viewFreeReport() {
-      goToPage(6);
-      generateReport();
-    }
+let text=""
 
-    function payWithWise() {
-      let link = 'https://wise.com/pay/r/cAKsHTVtV4zXfv4'; // 1年
-      if (selectedPlan === '10days') link = 'https://wise.com/pay/r/cZnwSSZyPWVu3Po';
-      else if (selectedPlan === 'lifetime') link = 'https://wise.com/pay/r/vrBF3KQI3UOCaiY';
-      
-      window.open(link, '_blank');
-      setTimeout(() => {
-        if (confirm('您已完成支付了吗？\nHave you completed the payment?')) {
-          goToPage(6);
-          generateReport();
-        }
-      }, 1500);
-    }
+if(type==="year"){
+text=`《易经》有云：“天行健，君子以自强不息。”此年命局五行呈木火相生之势，象征机遇逐渐显现。事业方面将迎来阶段性突破，但需谨慎决策，避免因冲动而失误。财运整体平稳，可通过副业或技能提升增加收入来源。感情方面宜多沟通，避免误会积累。
 
-    function generateReport() {
-      document.getElementById('report-content').innerHTML = `
-        <p class="mb-8 text-xl"><strong>中文版</strong><br>
-        根据您的脸部扫描 (Face Scan) 和手掌扫描 (Palm Scan)，结合八字天干地支、血型与西方星座，今生因果已现，东方神明与西方暗能量共同指引您的命运。</p>
-        <p class="mb-8">今年属相带来喜庆好运，西方轮盘显示您将获得一次重要恩赐，但需警惕潜在诱惑。建议避免冲动投资，注意人际关系中的小人。</p>
-        <p class="text-yellow-600 font-medium">运势随时间、年龄、气候不断变化。建议每10天、1个月或1年后再次复测，抓住每一个好运转折。特别注意今年属相带来的机遇与潜在风险。</p>
+Advice: This year favors growth and change. Focus on improving your skills, avoid impulsive decisions, and maintain clear communication in relationships.`
+}
 
-        <p class="mt-12 text-xl"><strong>English Version</strong><br>
-        Based on your Face Scan and Palm Scan, combined with Bazi, blood type and Western zodiac, the cause and effect of this life has been revealed. Eastern gods and Western dark energies jointly guide your destiny.</p>
-        <p class="mb-8">This year's zodiac brings joyful good luck. The Western wheel shows you will receive an important grace, but be wary of potential temptations. Avoid impulsive investments and pay attention to villains in interpersonal relationships.</p>
-        <p class="text-yellow-600 font-medium">Fortune changes with time, age, and climate. It is recommended to re-test every 10 days, 1 month or 1 year. Pay special attention to opportunities and risks brought by this year's zodiac.</p>
-      `;
-    }
+if(type==="ten"){
+text=`十年大运呈“金火交战”之象，代表挑战与机遇并存。此阶段事业发展关键在于战略选择，适合转型或拓展新领域。财运中期显著提升，但前期需耐心积累。人际关系需防小人，谨慎合作。
 
-    function downloadReport() {
-      generateReport();
-      const content = document.getElementById('report-content').innerText;
-      const blob = new Blob([content], { type: 'text/plain' });
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = 'Celestial_Fair_Report.txt';
-      a.click();
-      alert('报告已下载！ / Report downloaded!');
-    }
+Advice: Plan long-term. Avoid risky partnerships and focus on sustainable growth strategies.`
+}
 
-    function backToHome() {
-      goToPage(1);
-    }
+if(type==="life"){
+text=`命局整体属“中和之格”，人生发展呈渐进上升趋势。早年平稳，中年迎来重要发展期，晚年趋于安定。婚姻宜慎重选择，晚婚更利稳定。子女运良好，有助家族发展。
 
-    window.onload = () => goToPage(1);
-  </script>
+Advice: Build steadily. Invest in relationships and long-term security rather than short-term gains.`
+}
+
+if(type==="master"){
+text=`此命格属“藏锋之命”，潜力深厚但不显于表。贵人多在异地，适合外出发展。事业宜选择长期积累型路径。需避免口舌是非，保持低调稳健。
+
+Advice: Stay focused, avoid conflicts, and expand your opportunities beyond your comfort zone.`
+}
+
+document.getElementById("report").style.display="block"
+document.getElementById("report").innerHTML=`
+<h2>命理报告 | Destiny Report</h2>
+<p>${text}</p>
+<div class="download">下载 / Download</div>
+<p style="font-size:12px">仅供娱乐参考，不构成现实建议 | For entertainment only</p>
+`
+}
+
+</script>
+
 </body>
 </html>
